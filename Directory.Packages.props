@@ -1,0 +1,36 @@
+<Project>
+  <!--
+    Central Package Management (CPM): the only place where NuGet package versions are set.
+    In .csproj files packages are added WITHOUT a Version attribute:
+      <PackageReference Include="DocumentFormat.OpenXml" />
+    Changing a dependency version is a separate commit (see docs/policies/project_policy.md, "Git workflow").
+    Planned dependencies of src/* projects (solution skeleton is stage S2, see docs/specification/roadmap.md).
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup Label="Reports.Data - persistence (SQLite)">
+    <!-- Transitive: EF Core 8.0.10, Microsoft.Data.Sqlite.Core 8.0.10, SQLitePCLRaw 2.1.6 (e_sqlite3) -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.10" />
+  </ItemGroup>
+
+  <ItemGroup Label="Reports.Documents - .docx generation">
+    <!-- Transitive: DocumentFormat.OpenXml.Framework 3.1.0, System.IO.Packaging 8.0.0 -->
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Reports.Integration - Google Sheets">
+    <!-- Transitive: Google.Apis, Google.Apis.Auth, Google.Apis.Core 1.68.0, Newtonsoft.Json 13.0.3 -->
+    <PackageVersion Include="Google.Apis.Sheets.v4" Version="1.68.0.3561" />
+  </ItemGroup>
+
+  <ItemGroup Label="Reports.Desktop - UI">
+    <PackageVersion Include="WPF-UI" Version="3.0.5" />
+  </ItemGroup>
+
+  <!--
+    Planned test dependencies (stage S2; versions are set when they are added):
+      xunit, xunit.runner.visualstudio, Microsoft.NET.Test.Sdk, coverlet.collector
+  -->
+</Project>
