@@ -47,4 +47,4 @@ In S2 coverage is only collected. From S3 the report is checked in every PR. In 
 
 ## CI
 
-GitHub Actions on `windows-latest` (WPF needs Windows), added in S2. Every PR to `develop` and `master` runs: build with warnings as errors, `dotnet test` with coverage and architecture tests, `dotnet format --verify-no-changes`, `dotnet list package --vulnerable --include-transitive` and a secret scan. Any error rejects the PR. Before S2 the PR template checklist is used by hand.
+GitHub Actions on `windows-latest` (WPF needs Windows), added in S2. Every PR to `develop` and `main` runs: build with warnings as errors, `dotnet test` with coverage and architecture tests, `dotnet format --verify-no-changes`, `dotnet list package --vulnerable --include-transitive` and a secret scan. Any error rejects the PR. Before S2 the PR template checklist is used by hand.

@@ -165,11 +165,11 @@ The framework is xUnit, run with `dotnet test`. Test projects appear in S2, new 
 
 ## Git workflow
 
-Repository: `program-security--lab-1-2026-solomiia-kovalchuk` on GitHub. Access is over SSH, the remote is named `github`. Before any work, local `master` is synced with the remote (`git fetch`, `git pull`).
+Repository: `program-security--lab-1-2026-solomiia-kovalchuk` on GitHub. Access is over SSH, the remote is named `origin`. Before any work, local `main` is synced with the remote (`git fetch`, `git pull`).
 
 | Branch | Purpose |
 | --- | --- |
-| `master` | Main branch. From S2 changes come only by PR. In S0 and S1 (docs only, one author) direct commits are allowed. |
+| `main` | Main branch. From S2 changes come only by PR. In S0 and S1 (docs only, one author) direct commits are allowed. |
 | `develop` | Integration branch for planned development (from S2) |
 | Task branches | `dev-XXX-<short>`, `fix-XXX-<short>`, `docs-<short>`, `sec-<short>`. Deleted after merge. |
 

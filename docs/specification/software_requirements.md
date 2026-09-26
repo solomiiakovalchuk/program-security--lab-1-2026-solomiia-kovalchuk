@@ -112,6 +112,9 @@ Users: the report writer (role Operator) uses sync, episodes, reports and the jo
 | SEC-10 | The repository shall contain no secrets or personal data: `.gitignore` shall exclude `credentials.json`, `token*`, `*.db`, `settings.json` and `*.log`, and CI shall scan for secrets | Must | S2 |
 | SEC-11 | Package versions shall be managed in `Directory.Packages.props`, CI shall run a vulnerability check (`dotnet list package --vulnerable`) and a final check shall be done before release 1.0 | Must | S7 |
 | SEC-12 | The data folder and the database shall be readable only by the owner of the Windows profile, and the error log shall not contain secrets | Could | S6 |
+| SEC-13 | Every audit record shall contain a hash of its content and of the previous record, and the audit view shall warn the administrator if the chain is broken | Should | S6 |
+| SEC-14 | The system shall show the title of the target spreadsheet and ask the administrator to confirm it before the first write and after the spreadsheet ID changes, and shall record such a change in the audit log | Should | S6 |
+| SEC-15 | The system shall limit the rows and the cell length read from the sheet in one sync, let the user cancel the sync, and say in the sync summary when data was truncated | Should | S4 |
 
 ### 3.5 Design constraints
 
@@ -141,6 +144,9 @@ Users: the report writer (role Operator) uses sync, episodes, reports and the jo
 | SEC-07, SEC-08 | Test with malicious values (formulas, tags in text) |
 | SEC-09 | Test of Audit module |
 | SEC-10, SEC-11 | Inspection, secret scan and vulnerability check in CI |
+| SEC-13 | Test of Audit module (broken hash chain is detected) |
+| SEC-14 | Test with a fake sheet (title shown and confirmed), check of the audit record |
+| SEC-15 | Test with a large fake sheet (limit, cancel, truncation message) |
 
 ## 5 Traceability
 
@@ -158,6 +164,6 @@ Users: the report writer (role Operator) uses sync, episodes, reports and the jo
 | STK-10 | FR-14 |
 | STK-11 | SEC-01, SEC-03, SEC-12 |
 | STK-12 | FR-26, FR-27, FR-28, SEC-01 to SEC-04 |
-| STK-13 | FR-29, FR-30, FR-31, SEC-09 |
-| STK-14 | FR-19, SEC-05, SEC-06 |
-| STK-15 | SEC-07, SEC-08, SEC-10, SEC-11 |
+| STK-13 | FR-29, FR-30, FR-31, SEC-09, SEC-13 |
+| STK-14 | FR-19, SEC-05, SEC-06, SEC-14 |
+| STK-15 | SEC-07, SEC-08, SEC-10, SEC-11, SEC-15 |

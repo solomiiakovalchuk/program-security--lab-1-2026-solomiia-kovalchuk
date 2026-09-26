@@ -30,8 +30,8 @@ A stage is done when its results exist, its tests pass, and the docs match the c
 
 ## Process rules
 
-- The code, docs and policies live in one GitHub repository (`program-security--lab-1-2026-solomiia-kovalchuk`). The key is created with `ssh-keygen`, the remote is named `github`.
-- Before any work, sync local `master` with the remote (`git fetch`, `git pull`). After work, `git push`.
+- The code, docs and policies live in one GitHub repository (`program-security--lab-1-2026-solomiia-kovalchuk`). The key is created with `ssh-keygen`, the remote is named `origin`.
+- Before any work, sync local `main` with the remote (`git fetch`, `git pull`). After work, `git push`.
 - Commits use the format `[TYPE] summary` with `INIT`, `DEV-XXX`, `FIX-XXX`, `DOCS`, `SEC`, `RELEASE`.
 - Documentation is updated together with the code. The spec comes first, then the code.
 - No secrets or real data in the repository. Each lab gets a report with the repository link.

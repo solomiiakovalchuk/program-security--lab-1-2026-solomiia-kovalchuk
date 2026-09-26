@@ -1,14 +1,14 @@
 # Security - ReportsWpf
 
-This folder is for the security documents of the project. They will be written in Lab 2 (stage S1), before any code.
+This folder holds the security documents of the project. They were written in Lab 2 (stage S1), before any code.
 
-## Planned documents
+## Documents
 
 | Document | Content |
 | --- | --- |
-| `security_policy.md` | Security policy: scope, roles, principles, secure development, verification, vulnerability handling |
-| `privacy_policy.md` | Privacy policy: data categories, purposes, storage, retention, user rights |
-| `threat_model.md` | STRIDE threat model: system description, data flow diagram, threats and countermeasures |
+| [security_policy.md](security_policy.md) | Security policy: scope, roles, principles, secure development, verification, vulnerability handling |
+| [privacy_policy.md](privacy_policy.md) | Privacy policy: data categories, purposes, storage, retention, deletion |
+| [threat_model.md](threat_model.md) | STRIDE threat model: scope, data flow diagram, intruder model, threats and mitigations |
 
 ## Basic security principles
 
