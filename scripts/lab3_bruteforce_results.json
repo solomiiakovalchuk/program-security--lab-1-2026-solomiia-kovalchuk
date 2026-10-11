@@ -1,0 +1,47 @@
+{
+  "item8": {
+    "string": "pass: Ковальчук"
+  },
+  "item10": {
+    "string": "pass: Ковальчук",
+    "hash5_sha256": "bdbc5f68dd454e9386711b901ab095fc25fc9abc772e8c633aa450eabb4bf9d6"
+  },
+  "item11": {
+    "string": "pass: Ковальчук",
+    "hash6_bcrypt": "$2b$12$LwP5rWIzgPVjJoRaE19JherHhyf8Nh8b6KPox/v8/wpdna1SsXZfe"
+  },
+  "item9_wordlist": [
+    "pass: Admin",
+    "pass: 123456",
+    "pass: Password",
+    "pass: Operator",
+    "pass: Shevchenko",
+    "pass: Kovalenko",
+    "pass: Bondarenko",
+    "pass: Tkachenko",
+    "pass: qwerty",
+    "pass: Petrenko",
+    "pass: Melnyk",
+    "pass: Kravchuk",
+    "pass: Boyko",
+    "pass: Koval",
+    "pass: Savchenko",
+    "pass: Moroz",
+    "pass: Lysenko",
+    "pass: Ivanenko",
+    "pass: Marchenko",
+    "pass: Ковальчук"
+  ],
+  "item12_bruteforce_hash5_sha256": {
+    "algorithm": "SHA-256",
+    "found": "pass: Ковальчук",
+    "attempts": 20,
+    "elapsed_microseconds": 99.5
+  },
+  "item12_bruteforce_hash6_bcrypt": {
+    "algorithm": "bcrypt (12 rounds)",
+    "found": "pass: Ковальчук",
+    "attempts": 20,
+    "elapsed_microseconds": 8220414.4
+  }
+}
