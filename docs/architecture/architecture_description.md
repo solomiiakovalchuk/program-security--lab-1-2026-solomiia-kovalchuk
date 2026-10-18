@@ -4,11 +4,11 @@
 |---|---|
 | Project | ReportsWpf, UAV and Ammunition Usage Reporting System |
 | Document | Architecture Description (ISO/IEC/IEEE 42010) |
-| Version / status / date | 0.1.0, Draft, 2026-09-19 |
+| Version / status / date | 0.2.0, Draft, 2026-10-17 |
 | Author | Solomiia Kovalchuk, group IPZs-24-1, KhNU |
 | Related | [StRS](../specification/stakeholder_requirements.md), [SRS](../specification/software_requirements.md), [Modules](../specification/modules.md), [Roadmap](../specification/roadmap.md), [Project policy](../policies/project_policy.md) |
 
-The system is not built yet. This document describes the planned architecture. Every element is "Planned" and has a target stage from the [roadmap](../specification/roadmap.md) (S2-S6).
+The system as a whole is not built yet; this document describes the planned architecture, and every element not noted otherwise is "Planned" with a target stage from the [roadmap](../specification/roadmap.md) (S2-S6). Two slices were pulled forward by course labs ahead of the rest of their stage: the `Reports.Core`/`Reports.Identity` domain logic (Lab 3) and `Reports.Security` (Lab 4, secrets-at-rest protection) - both exist as code with tests, neither is wired into a host application yet, since `Reports.Desktop` and `Reports.Data` are still S2/S3 work.
 
 ## 1 Introduction
 
@@ -16,7 +16,7 @@ The system is not built yet. This document describes the planned architecture. E
 
 **Purpose of this document.** Fix the architecture before coding, give a base for the security policy and the STRIDE threat model (Lab 2), and link requirements, modules and decisions.
 
-**Planned solution.** Projects `Reports.Core`, `Reports.Data`, `Reports.Documents`, `Reports.Integration`, `Reports.Desktop` (S2-S5), then `Reports.Identity` and `Reports.Audit` (S6), and test projects in `tests/` (S2).
+**Planned solution.** Projects `Reports.Core`, `Reports.Data`, `Reports.Documents`, `Reports.Integration`, `Reports.Desktop` (S2-S5), then `Reports.Identity`, `Reports.Security` and `Reports.Audit` (S6), and test projects in `tests/` (S2). `Reports.Core`, `Reports.Identity`, `Reports.Security` and their test projects already exist (Lab 3, Lab 4); the rest of the list is still to build.
 
 ## 2 Stakeholders and concerns
 

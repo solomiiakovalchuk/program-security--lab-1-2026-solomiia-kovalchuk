@@ -1,0 +1,46 @@
+{
+  "item2": {
+    "base_string": "2026_ІПЗс-24-1_Ковальчук_Соломія_варіант:05_",
+    "utf8_byte_length": 71
+  },
+  "item3_caesar": {
+    "alphabet": "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя",
+    "key_shift": 7,
+    "plaintext": "2026_ІПЗс-24-1_Ковальчук_Соломія_варіант:05_",
+    "ciphertext": "2026_ОЦМш-24-1_Схзєтґбьс_Шхтхуое_зєчоєфщ:05_",
+    "note": "Only Ukrainian Cyrillic letters are shifted; digits, '_', '-', ':' stay as-is (classic-Caesar scope)."
+  },
+  "item4_transposition": {
+    "key": "БЕЗПЕКА",
+    "plaintext": "2026_ІПЗс-24-1_Ковальчук_Соломія_варіант:05_",
+    "ciphertext": "П1ьла0_2З_чор50сКумі__4аС_т_2-окіа_І-лов:_62в_ян_",
+    "note": "Columnar transposition, padded with '_' to a full rectangle; columns read out in alphabetical key order."
+  },
+  "item5_analysis": {
+    "caesar": "Substitution: every letter is replaced by another fixed letter of the same alphabet (shift 7). Length and symbol positions are unchanged; digits/punctuation leak unchanged. Letter FREQUENCIES are preserved (just relabeled), so classic frequency analysis still recovers the key.",
+    "transposition": "Permutation: the same multiset of characters as the plaintext (letters, digits, punctuation all appear, just padded with '_'), only their ORDER changes. Letter frequencies of the plaintext are fully preserved (anagram of the input), but word/field boundaries are destroyed.",
+    "overall": "Neither on its own hides the fact that this is Ukrainian/Latin text built from a fixed template: substitution keeps structure+length, transposition keeps the alphabet's frequency profile. Both are pedagogical/historical and are explicitly NOT acceptable for protecting real data per the project's security policy (modern authenticated ciphers only, see Reports.Security / crypto_strategy.md)."
+  },
+  "item6_aes_ctr": {
+    "plaintext": "2026_ІПЗс-24-1_Ковальчук_Соломія_варіант:05_",
+    "key1_hex": "890059b09939f4f64f69d958e9b185d942b561349c6c83c3abccd182caa62576",
+    "vector1_iv_hex": "8823dc78801996189a869f2cbebf391e",
+    "ciphertext1_hex": "9ce4d155c0ad77925a16939d253c8c539b3c6efe2a5ddf7298391e9f35a61f4f53d10025fc1951d103b7c82ac890208068ea62ecd30e510557b1b9504d496985fa603b7d76c040"
+  },
+  "item7_2_gamma1": {
+    "gamma1_hex": "aed4e3639f7df142c5c6044ca411be67b60d312eb08d61a22ae9ae4f8e77939ed40083f546468170d3091891182ef03cb97cb3638cdee3d5e7603981db99d95547b1b94746f51f"
+  },
+  "item7_3_alt_plaintext": {
+    "alt_plaintext": "2026_ІПЗс-24-1_Ковальчук_Соломія_варіант:99_",
+    "utf8_byte_length": 71,
+    "same_length_as_original": true
+  },
+  "item7_4_ciphertext2": {
+    "ciphertext2_hex": "9ce4d155c0ad77925a16939d253c8c539b3c6efe2a5ddf7298391e9f35a61f4f53d10025fc1951d103b7c82ac890208068ea62ecd30e510557b1b9504d496985fa603b7d7fcc40"
+  },
+  "item8_verification": {
+    "decrypted_ciphertext2_with_key1_vector1": "2026_ІПЗс-24-1_Ковальчук_Соломія_варіант:99_",
+    "matches_alt_plaintext": true,
+    "conclusion": "The attacker, without ever learning Key #1 or Vector #1, forged a ciphertext that decrypts under the real key/IV to an arbitrary chosen message. This is the classic CTR/stream-cipher keystream-reuse vulnerability: reusing (key, nonce) -- or, equivalently, recovering the keystream once via a known-plaintext pair -- breaks both confidentiality and integrity for every other message protected with that same keystream. It demonstrates why plain CTR provides NO authenticity, and why the project standard is authenticated encryption (AES-GCM) with a unique nonce per message, never a reused (key, nonce) pair."
+  }
+}

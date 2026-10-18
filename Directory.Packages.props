@@ -36,6 +36,10 @@
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
   </ItemGroup>
 
+  <ItemGroup Label="Reports.Security - secrets protection">
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+
   <!--
     Planned test dependencies (stage S2; versions are set when they are added):
       xunit, xunit.runner.visualstudio, Microsoft.NET.Test.Sdk, coverlet.collector
