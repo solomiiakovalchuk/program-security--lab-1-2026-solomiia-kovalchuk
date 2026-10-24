@@ -13,6 +13,8 @@
   <ItemGroup Label="Reports.Data - persistence (SQLite)">
     <!-- Transitive: EF Core 8.0.10, Microsoft.Data.Sqlite.Core 8.0.10, SQLitePCLRaw 2.1.6 (e_sqlite3) -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.10" />
+    <!-- Design-time only (migrations); PrivateAssets=all in the project -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10" />
   </ItemGroup>
 
   <ItemGroup Label="Reports.Documents - .docx generation">

@@ -47,6 +47,15 @@ public sealed class InMemoryAccountRepository : IAccountRepository
     }
 
     /// <inheritdoc/>
+    public Task DeleteAsync(Account account)
+    {
+        ArgumentNullException.ThrowIfNull(account);
+
+        _accounts.TryRemove(account.LoginNormalized, out _);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
     public Task<IReadOnlyList<Account>> GetAllAsync()
     {
         IReadOnlyList<Account> snapshot = _accounts.Values.ToList();

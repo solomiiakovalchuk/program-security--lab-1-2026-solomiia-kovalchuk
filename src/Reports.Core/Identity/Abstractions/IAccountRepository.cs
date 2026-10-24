@@ -14,6 +14,9 @@ public interface IAccountRepository
     /// <summary>Saves changes to an existing account.</summary>
     Task UpdateAsync(Account account);
 
+    /// <summary>Removes an existing account.</summary>
+    Task DeleteAsync(Account account);
+
     /// <summary>Returns all accounts, including blocked ones.</summary>
     Task<IReadOnlyList<Account>> GetAllAsync();
 

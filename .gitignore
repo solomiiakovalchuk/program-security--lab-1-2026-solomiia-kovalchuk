@@ -65,6 +65,10 @@ token/
 token-rw/
 token*/
 
+# DPAPI-protected master key and the encrypted copy of credentials.json (S6, SEC-05)
+master.key
+credentials.enc
+
 # Local SQLite database (+ WAL/SHM) - operational data and personal data
 *.db
 *.db-*

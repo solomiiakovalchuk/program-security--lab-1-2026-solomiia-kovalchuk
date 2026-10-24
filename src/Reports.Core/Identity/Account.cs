@@ -133,6 +133,13 @@ public sealed class Account : Entity
         LockedUntilUtc = null;
     }
 
+    /// <summary>Clears the failed-attempt counter and any lock without touching the block flag.</summary>
+    public void ClearLockout()
+    {
+        FailedAttempts = 0;
+        LockedUntilUtc = null;
+    }
+
     /// <summary>Clears the flag that forces a password change.</summary>
     public void ClearMustChangePassword()
     {
