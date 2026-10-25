@@ -1,3 +1,4 @@
+using Reports.Core.Audit;
 using Reports.Core.Identity;
 using Reports.Core.Identity.Abstractions;
 using Reports.Core.Identity.Exceptions;
@@ -8,6 +9,14 @@ namespace Reports.Identity;
 /// <summary>Sets initial passwords and changes existing ones, applying the password policy.</summary>
 public sealed class ChangePasswordService
 {
+    private readonly IAuditSink _audit;
+
+    /// <summary>Creates the service; auditing is off unless a sink is given.</summary>
+    public ChangePasswordService(IAuditSink? auditSink = null)
+    {
+        _audit = auditSink ?? NullAuditSink.Instance;
+    }
+
     /// <summary>Sets the first password of an account that has none yet.</summary>
     public async Task SetInitialPasswordAsync(
         IAccountRepository repository,
@@ -29,6 +38,7 @@ public sealed class ChangePasswordService
 
         account.SetPasswordHash(hasher.HashPassword(newPassword), mustChangePassword: false);
         await repository.UpdateAsync(account);
+        RecordChanged(account, "Initial");
     }
 
     /// <summary>Changes the password after verifying the current one.</summary>
@@ -65,6 +75,17 @@ public sealed class ChangePasswordService
 
         account.SetPasswordHash(hasher.HashPassword(newPassword), mustChangePassword: false);
         await repository.UpdateAsync(account);
+        RecordChanged(account, "Self");
+    }
+
+    private void RecordChanged(Account account, string initiator)
+    {
+        _audit.Record(
+            AuditAction.PasswordChanged,
+            AuditTarget.Account,
+            account.Id.ToString(),
+            AuditOutcome.Success,
+            new Dictionary<string, string> { ["initiator"] = initiator });
     }
 
     private static void EnsurePolicy(string newPassword, Account account)

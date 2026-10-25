@@ -1,3 +1,4 @@
+using Reports.Core.Audit;
 using Reports.Core.Identity;
 using Reports.Core.Identity.Abstractions;
 
@@ -16,18 +17,21 @@ public sealed class AuthenticationService
     private readonly IPasswordHasher _hasher;
     private readonly ISessionContext _sessionContext;
     private readonly Func<DateTime> _clock;
+    private readonly IAuditSink _audit;
 
     /// <summary>Creates the authentication service.</summary>
     public AuthenticationService(
         IAccountRepository repository,
         IPasswordHasher hasher,
         ISessionContext sessionContext,
-        Func<DateTime>? clock = null)
+        Func<DateTime>? clock = null,
+        IAuditSink? auditSink = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
         _sessionContext = sessionContext ?? throw new ArgumentNullException(nameof(sessionContext));
         _clock = clock ?? (() => DateTime.UtcNow);
+        _audit = auditSink ?? NullAuditSink.Instance;
     }
 
     /// <summary>Attempts to log in; refused logins are reported uniformly as Failed.</summary>
@@ -42,12 +46,14 @@ public sealed class AuthenticationService
         if (account is null)
         {
             _hasher.VerifyAgainstDummy(password);
+            RecordFailure(null, loginKnown: false, reason: null);
             return LoginOutcome.Failed;
         }
 
         if (account.IsBlocked || account.IsLockedAt(now))
         {
             _hasher.VerifyAgainstDummy(password);
+            RecordFailure(account, loginKnown: true, account.IsBlocked ? "Blocked" : "LockedOut");
             return LoginOutcome.Failed;
         }
 
@@ -62,6 +68,17 @@ public sealed class AuthenticationService
         {
             account.RegisterFailedAttempt(now, MaxFailedAttempts, LockoutDuration);
             await _repository.UpdateAsync(account);
+            RecordFailure(account, loginKnown: true, "BadPassword");
+            if (account.IsLockedAt(now))
+            {
+                _audit.Record(
+                    AuditAction.AccountLockedOut,
+                    AuditTarget.Account,
+                    account.Id.ToString(),
+                    AuditOutcome.Failure,
+                    new Dictionary<string, string> { ["lockedUntilUtc"] = account.LockedUntilUtc!.Value.ToString("O") });
+            }
+
             return LoginOutcome.Failed;
         }
 
@@ -73,6 +90,12 @@ public sealed class AuthenticationService
 
         await _repository.UpdateAsync(account);
         _sessionContext.Current = new Session(account.Id, account.Login, account.Role);
+        _audit.Record(
+            AuditAction.LoginSucceeded,
+            AuditTarget.Account,
+            account.Id.ToString(),
+            AuditOutcome.Success,
+            new Dictionary<string, string> { ["role"] = account.Role.ToString() });
 
         return account.MustChangePassword ? LoginOutcome.RequiresPasswordChange : LoginOutcome.Success;
     }
@@ -80,7 +103,19 @@ public sealed class AuthenticationService
     /// <summary>Ends the current session.</summary>
     public Task LogoutAsync()
     {
-        _sessionContext.Current = null;
+        new SessionService(_sessionContext, _audit).Logout();
         return Task.CompletedTask;
+    }
+
+    // The login text is deliberately not recorded: for an unknown login it may be a mistyped password.
+    private void RecordFailure(Account? account, bool loginKnown, string? reason)
+    {
+        var details = new Dictionary<string, string> { ["loginKnown"] = loginKnown ? "true" : "false" };
+        if (reason is not null)
+        {
+            details["reason"] = reason;
+        }
+
+        _audit.Record(AuditAction.LoginFailed, AuditTarget.Account, account?.Id.ToString(), AuditOutcome.Failure, details);
     }
 }
