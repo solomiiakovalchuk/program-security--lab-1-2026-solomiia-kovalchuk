@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Sheets.v4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Reports.Core\Reports.Core.csproj" />
+    <ProjectReference Include="..\Reports.Security\Reports.Security.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Reports.Integration.Tests" />
+  </ItemGroup>
+
+</Project>
