@@ -87,3 +87,6 @@ error.log
 
 # Generated reports and debug data
 Рапорти/
+
+# Offline release signing key (Lab 5, SEC-16); only the public key is committed
+config/release-signing.key

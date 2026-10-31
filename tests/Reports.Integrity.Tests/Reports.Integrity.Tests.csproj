@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Reports.Integrity/Reports.Integrity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../../config/release-public.spki" Link="release/release-public.spki" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../config/release.manifest.json" Link="release/release.manifest.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../config/release.manifest.sig" Link="release/release.manifest.sig" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../config/sample-dist/**" Link="release/sample-dist/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
