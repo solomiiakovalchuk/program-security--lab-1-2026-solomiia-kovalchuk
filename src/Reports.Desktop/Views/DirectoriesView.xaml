@@ -1,0 +1,105 @@
+<UserControl x:Class="Reports.Desktop.Views.DirectoriesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:Reports.Desktop.ViewModels"
+             xmlns:infra="clr-namespace:Reports.Desktop.Infrastructure"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance vm:DirectoriesViewModel}">
+
+    <UserControl.Resources>
+        <Style x:Key="DirActions" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel Margin="20,16,20,16">
+        <ui:TextBlock DockPanel.Dock="Top" Text="Довідники"
+                      FontTypography="Title" Margin="0,0,0,14" />
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+
+                <ItemsControl ItemsSource="{Binding Sections}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ui:CardExpander Margin="0,0,0,8" IsExpanded="True">
+                                <ui:CardExpander.Resources>
+                                    <infra:BindingProxy x:Key="SectionProxy" Data="{Binding}" />
+                                </ui:CardExpander.Resources>
+                                <ui:CardExpander.Header>
+                                    <StackPanel>
+                                        <ui:TextBlock Text="{Binding Title}" FontTypography="BodyStrong" />
+                                        <TextBlock Text="{Binding Hint}" Style="{StaticResource Hint}" />
+                                    </StackPanel>
+                                </ui:CardExpander.Header>
+
+                                <StackPanel>
+                                    <StackPanel Style="{StaticResource DirActions}">
+                                        <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Add24}"
+                                                   Content="Додати" Command="{Binding AddCommand}" />
+                                        <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Save24}"
+                                                   Content="Зберегти" Margin="6,0,0,0"
+                                                   Command="{Binding SaveCommand}" />
+                                        <ui:Button Appearance="Transparent" Icon="{ui:SymbolIcon Delete24}"
+                                                   Content="Видалити" Margin="6,0,0,0"
+                                                   Command="{Binding DeleteCommand}" />
+                                    </StackPanel>
+                                    <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
+                                              AutoGenerateColumns="False" CanUserAddRows="False"
+                                              HeadersVisibility="Column" BorderThickness="0"
+                                              MaxHeight="240">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Width="300"
+                                                Header="{Binding Data.LeftHeader, Source={StaticResource SectionProxy}}"
+                                                Binding="{Binding Left, UpdateSourceTrigger=LostFocus}" />
+                                            <DataGridTextColumn Width="*"
+                                                Header="{Binding Data.RightHeader, Source={StaticResource SectionProxy}}"
+                                                Binding="{Binding Right, UpdateSourceTrigger=LostFocus}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </ui:CardExpander>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ui:CardExpander Margin="0,0,0,8" IsExpanded="True">
+                    <ui:CardExpander.Header>
+                        <ui:TextBlock Text="Люди — підписанти та оператори" FontTypography="BodyStrong" />
+                    </ui:CardExpander.Header>
+                    <StackPanel>
+                        <StackPanel Style="{StaticResource DirActions}">
+                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon Add24}"
+                                       Content="Додати" Command="{Binding AddPersonCommand}" />
+                            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Save24}"
+                                       Content="Зберегти" Margin="6,0,0,0"
+                                       Command="{Binding SavePeopleCommand}" />
+                            <ui:Button Appearance="Transparent" Icon="{ui:SymbolIcon Delete24}"
+                                       Content="Видалити" Margin="6,0,0,0"
+                                       Command="{Binding DeletePersonCommand}" />
+                        </StackPanel>
+                        <DataGrid ItemsSource="{Binding People}" SelectedItem="{Binding SelectedPerson}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False"
+                                  HeadersVisibility="Column" BorderThickness="0" MaxHeight="260">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Email" Width="230"
+                                                    Binding="{Binding Email, UpdateSourceTrigger=LostFocus}" />
+                                <DataGridTextColumn Header="ПІБ" Width="220"
+                                                    Binding="{Binding FullName, UpdateSourceTrigger=LostFocus}" />
+                                <DataGridTextColumn Header="Звання" Width="150"
+                                                    Binding="{Binding Rank, UpdateSourceTrigger=LostFocus}" />
+                                <DataGridTextColumn Header="Посада" Width="*"
+                                                    Binding="{Binding Position, UpdateSourceTrigger=LostFocus}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </ui:CardExpander>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

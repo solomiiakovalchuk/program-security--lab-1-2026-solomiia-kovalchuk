@@ -1,0 +1,181 @@
+<UserControl x:Class="Reports.Desktop.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:Reports.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance vm:SettingsViewModel}">
+
+    <DockPanel Margin="20,16,20,16">
+        <ui:TextBlock DockPanel.Dock="Top" Text="Налаштування"
+                      FontTypography="Title" Margin="0,0,0,14" />
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel MaxWidth="780" HorizontalAlignment="Left"
+                        IsEnabled="{Binding CanChangeSettings}">
+
+                <ui:CardExpander Margin="0,0,0,10" IsExpanded="True">
+                    <ui:CardExpander.Header>
+                        <ui:TextBlock Text="Джерело даних" FontTypography="BodyStrong" />
+                    </ui:CardExpander.Header>
+                    <StackPanel>
+                        <DockPanel LastChildFill="False" Margin="0,0,0,2">
+                            <ui:ToggleSwitch DockPanel.Dock="Left" IsChecked="{Binding UseDemoData}" />
+                            <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Margin="10,0,0,0"
+                                       Text="Демонстраційні дані (без Google та інтернету)" />
+                        </DockPanel>
+                        <TextBlock Text="{Binding SourceDescription}" Style="{StaticResource Hint}" />
+
+                        <DockPanel LastChildFill="False" Margin="0,8,0,2">
+                            <ui:ToggleSwitch DockPanel.Dock="Left" IsChecked="{Binding UploadEnabled}" />
+                            <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Margin="10,0,0,0"
+                                       Text="Дозволити вивантаження у Google-таблицю (лише адміністратор)" />
+                        </DockPanel>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Перед першим записом і після зміни таблиці буде показано її назву для підтвердження." />
+
+                        <ui:TextBlock Text="Ідентифікатор Google-таблиці" Style="{StaticResource FieldLabel}" />
+                        <ui:TextBox Text="{Binding SpreadsheetId}"
+                                    PlaceholderText="1AbC…XyZ або повна адреса таблиці" />
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="З адреси: docs.google.com/spreadsheets/d/ІДЕНТИФІКАТОР/edit" />
+
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <ui:TextBlock Text="Аркуш відповідей" Style="{StaticResource FieldLabel}" />
+                                <ui:TextBox Text="{Binding ResponsesSheet}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <ui:TextBlock Text="Аркуш довідників" Style="{StaticResource FieldLabel}" />
+                                <ui:TextBox Text="{Binding DirectoriesSheet}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <ui:TextBlock Text="Аркуш людей" Style="{StaticResource FieldLabel}" />
+                                <ui:TextBox Text="{Binding PeopleSheet}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="{Binding CredentialsStatus}"
+                                   Style="{StaticResource Hint}" Margin="0,10,0,0" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon PlugConnected24}"
+                                       Content="Перевірити з'єднання"
+                                       Command="{Binding CheckConnectionCommand}" />
+                            <ui:Button Appearance="Transparent" Icon="{ui:SymbolIcon KeyReset24}"
+                                       Content="Забути токен" Margin="6,0,0,0"
+                                       Command="{Binding ForgetTokenCommand}" />
+                        </StackPanel>
+
+                        <Border Margin="0,10,0,0" CornerRadius="6" Padding="12"
+                                Background="{DynamicResource SolidBackgroundFillColorSecondaryBrush}"
+                                Visibility="{Binding ConnectionReport,
+                                             Converter={StaticResource EmptyToCollapsed}}">
+                            <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Auto">
+                                <TextBlock Text="{Binding ConnectionReport, Mode=OneWay}"
+                                           FontFamily="Consolas" FontSize="12" TextWrapping="NoWrap" />
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </ui:CardExpander>
+
+                <ui:CardExpander Margin="0,0,0,10" IsExpanded="True">
+                    <ui:CardExpander.Header>
+                        <ui:TextBlock Text="Реквізити документа" FontTypography="BodyStrong" />
+                    </ui:CardExpander.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Гриф" Style="{StaticResource FieldLabel}" />
+                        <ui:TextBox Text="{Binding Classification}" />
+
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <ui:TextBlock Text="Адресат" Style="{StaticResource FieldLabel}" />
+                                <ui:TextBox Text="{Binding Addressee}" AcceptsReturn="True"
+                                            TextWrapping="Wrap" MinHeight="60" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <ui:TextBlock Text="Резолюція" Style="{StaticResource FieldLabel}" />
+                                <ui:TextBox Text="{Binding Resolution}" AcceptsReturn="True"
+                                            TextWrapping="Wrap" MinHeight="60" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <ui:TextBlock Text="Звання під резолюцією" Style="{StaticResource FieldLabel}" />
+                                <ui:TextBox Text="{Binding ResolutionRank}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <ui:TextBlock Text="ПІБ під резолюцією" Style="{StaticResource FieldLabel}" />
+                                <ui:TextBox Text="{Binding ResolutionName}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <ui:TextBlock Text="Підрозділ (у тексті рапорту)" Style="{StaticResource FieldLabel}" />
+                        <ui:TextBox Text="{Binding SubunitText}" AcceptsReturn="True"
+                                    TextWrapping="Wrap" MinHeight="56" />
+
+                        <ui:TextBlock Text="Бойовий наказ за замовчуванням" Style="{StaticResource FieldLabel}" />
+                        <ui:TextBox Text="{Binding OrderDefault}" />
+
+                        <ui:InfoBar IsOpen="True" IsClosable="False" Severity="Informational"
+                                    Margin="0,12,0,0"
+                                    Message="Гриф, адресат і резолюція вписані у шаблон. Після зміни натисніть «Перебудувати шаблон»." />
+                    </StackPanel>
+                </ui:CardExpander>
+
+                <ui:CardExpander Margin="0,0,0,10" IsExpanded="True">
+                    <ui:CardExpander.Header>
+                        <ui:TextBlock Text="Файли" FontTypography="BodyStrong" />
+                    </ui:CardExpander.Header>
+                    <StackPanel>
+                        <ui:TextBlock Text="Тека для рапортів" Style="{StaticResource FieldLabel}" />
+                        <ui:TextBox Text="{Binding OutputFolder}" />
+
+                        <ui:TextBlock Text="Шаблон" Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding TemplatePath}" Style="{StaticResource Hint}" />
+
+                        <ui:TextBlock Text="Тека даних" Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="{Binding DataFolder}" Style="{StaticResource Hint}" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <ui:Button Appearance="Transparent" Icon="{ui:SymbolIcon DocumentEdit24}"
+                                       Content="Відкрити шаблон" Command="{Binding OpenTemplateCommand}" />
+                            <ui:Button Appearance="Transparent" Icon="{ui:SymbolIcon FolderOpen24}"
+                                       Content="Тека даних" Margin="6,0,0,0"
+                                       Command="{Binding OpenDataFolderCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ui:CardExpander>
+
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
+                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Save24}"
+                               Content="Зберегти налаштування" Command="{Binding SaveCommand}" />
+                    <ui:Button Appearance="Secondary" Icon="{ui:SymbolIcon ArrowClockwise24}"
+                               Content="Перебудувати шаблон" Margin="6,0,0,0"
+                               Command="{Binding RebuildTemplateCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

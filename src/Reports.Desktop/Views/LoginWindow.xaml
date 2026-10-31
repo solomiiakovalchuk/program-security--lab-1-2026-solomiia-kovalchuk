@@ -1,0 +1,67 @@
+<ui:FluentWindow x:Class="Reports.Desktop.Views.LoginWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:vm="clr-namespace:Reports.Desktop.ViewModels"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 mc:Ignorable="d"
+                 Title="Вхід — Рапорти"
+                 Width="460" Height="600"
+                 ResizeMode="CanMinimize"
+                 WindowStartupLocation="CenterScreen"
+                 WindowBackdropType="Mica"
+                 ExtendsContentIntoTitleBar="True"
+                 d:DataContext="{d:DesignInstance vm:LoginViewModel}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="Вхід — Рапорти" ShowMaximize="False" />
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="36,12,36,24">
+                <ui:SymbolIcon Symbol="Album24" FontSize="44" HorizontalAlignment="Left"
+                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                <ui:TextBlock Text="Рапорти БпЛА" FontTypography="Title" Margin="0,10,0,0" />
+                <ui:TextBlock Text="{Binding Heading}" FontTypography="Subtitle" Margin="0,4,0,16"
+                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+
+                <!-- Крок 1: логін і пароль -->
+                <StackPanel Visibility="{Binding IsCredentialsStep, Converter={StaticResource BoolToVis}}">
+                    <ui:TextBlock Text="Логін" Style="{StaticResource FieldLabel}" />
+                    <ui:TextBox x:Name="LoginBox" Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBlock Text="Пароль" Style="{StaticResource FieldLabel}" />
+                    <PasswordBox x:Name="PasswordBox" PasswordChanged="OnPasswordChanged" />
+                </StackPanel>
+
+                <!-- Кроки 2-3: новий пароль -->
+                <StackPanel Visibility="{Binding IsPasswordStep, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Style="{StaticResource Hint}"
+                               Text="Новий пароль: щонайменше 8 символів, хоча б одна цифра і один розділовий знак чи символ." />
+                    <ui:TextBlock Text="Новий пароль" Style="{StaticResource FieldLabel}" />
+                    <PasswordBox x:Name="NewPasswordBox" PasswordChanged="OnNewPasswordChanged" />
+                    <ui:TextBlock Text="Підтвердження пароля" Style="{StaticResource FieldLabel}" />
+                    <PasswordBox x:Name="ConfirmPasswordBox" PasswordChanged="OnConfirmPasswordChanged" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding Error}" TextWrapping="Wrap" Margin="0,14,0,0"
+                           Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                           Visibility="{Binding Error, Converter={StaticResource EmptyToCollapsed}}" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                    <ui:Button Appearance="Primary" IsDefault="True"
+                               Content="{Binding SubmitText}"
+                               Command="{Binding SubmitCommand}" />
+                    <ui:Button Appearance="Transparent" Content="Назад" Margin="8,0,0,0"
+                               Command="{Binding BackCommand}"
+                               Visibility="{Binding IsPasswordStep, Converter={StaticResource BoolToVis}}" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ui:FluentWindow>

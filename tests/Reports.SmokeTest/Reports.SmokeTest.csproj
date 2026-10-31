@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Reports.SmokeTest</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Reports.Core\Reports.Core.csproj" />
+    <ProjectReference Include="..\..\src\Reports.Data\Reports.Data.csproj" />
+    <ProjectReference Include="..\..\src\Reports.Documents\Reports.Documents.csproj" />
+    <ProjectReference Include="..\..\src\Reports.Integration\Reports.Integration.csproj" />
+  </ItemGroup>
+
+</Project>
