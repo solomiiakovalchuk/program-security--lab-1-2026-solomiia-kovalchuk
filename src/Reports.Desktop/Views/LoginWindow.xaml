@@ -30,6 +30,18 @@
                 <ui:TextBlock Text="{Binding Heading}" FontTypography="Subtitle" Margin="0,4,0,16"
                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 
+                <Border Margin="0,0,0,12" Padding="14,10" CornerRadius="6" BorderThickness="1"
+                        Background="{DynamicResource SystemFillColorCautionBackgroundBrush}"
+                        BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
+                        AutomationProperties.AutomationId="IntegrityBanner"
+                        Visibility="{Binding IntegrityWarning, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock Text="Режим розробника" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Text="{Binding IntegrityWarningText}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    </StackPanel>
+                </Border>
 
                 <!-- Крок 1: логін і пароль -->
                 <StackPanel Visibility="{Binding IsCredentialsStep, Converter={StaticResource BoolToVis}}">

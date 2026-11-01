@@ -218,6 +218,16 @@ public sealed class LoginViewModelTests
         Assert.Equal(LoginStep.Credentials, _vm.Step);
         Assert.Contains(_sink.Events, e => e.Action == AuditAction.Logout);
     }
+
+    [Fact]
+    public async Task Integrity_warning_flag_is_passed_through()
+    {
+        var auth = new AuthenticationService(_accounts, _hasher, _session, null, _sink);
+        var vm = new LoginViewModel(auth, new ChangePasswordService(_sink), _accounts, _hasher, integrityWarning: true);
+        Assert.True(vm.IntegrityWarning);
+        Assert.Contains("не підписано", vm.IntegrityWarningText);
+        await Task.CompletedTask;
+    }
 }
 
 public sealed class ChangePasswordViewModelTests

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Reports.Core.Identity.Exceptions;
 using Reports.Desktop.Infrastructure;
+using Reports.Integrity;
 using Reports.Desktop.ViewModels;
 using Reports.Desktop.Views;
 using Wpf.Ui.Appearance;
@@ -27,7 +28,35 @@ public partial class App : Application
 
         try
         {
-            var services = AppServices.Create();
+            // SEC-16: перед усім іншим перевіряємо підписаний маніфест випуску.
+            var integrity = StartupIntegrityCheck.Run(AppContext.BaseDirectory, ReleaseKey.Load());
+
+            if (integrity.Outcome == StartupIntegrityOutcome.Failed)
+            {
+                // Пояснення важливіше за журнал: подію пробуємо записати, але відмову показуємо в будь-якому разі
+                // (наприклад, коли бракує самої збірки, потрібної для створення сервісів).
+                try
+                {
+                    var failed = AppServices.Create(integrity);
+                    await failed.InitializeAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log("Не вдалося записати подію порушення цілісності", ex);
+                }
+
+                MessageBox.Show(
+                    "Цілісність застосунку порушена (" + integrity.Reason + "). " +
+                    "Файли змінено або пошкоджено, тому запуск скасовано.\n\n" +
+                    "Встановіть застосунок повторно з перевіреного джерела.",
+                    "Перевірка цілісності",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Shutdown(1);
+                return;
+            }
+
+            var services = AppServices.Create(integrity);
             await services.InitializeAsync();
 
             _services = services;
@@ -63,7 +92,7 @@ public partial class App : Application
         var services = _services!;
         var login = new LoginViewModel(
             services.Authentication, services.ChangePassword, services.Accounts,
-            services.PasswordHasher);
+            services.PasswordHasher, services.IntegrityWarning);
         var window = new LoginWindow { DataContext = login };
 
         login.LoggedIn += (_, _) =>

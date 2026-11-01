@@ -19,7 +19,13 @@
     <ProjectReference Include="..\Reports.Documents\Reports.Documents.csproj" />
     <ProjectReference Include="..\Reports.Identity\Reports.Identity.csproj" />
     <ProjectReference Include="..\Reports.Integration\Reports.Integration.csproj" />
+    <ProjectReference Include="..\Reports.Integrity\Reports.Integrity.csproj" />
     <ProjectReference Include="..\Reports.Security\Reports.Security.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SEC-16: the client carries only the public key. -->
+    <EmbeddedResource Include="../../config/release-public.spki" LogicalName="release-public.spki" />
   </ItemGroup>
 
   <ItemGroup>

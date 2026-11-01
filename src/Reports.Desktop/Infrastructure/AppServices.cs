@@ -11,6 +11,7 @@ using Reports.Data.Repositories;
 using Reports.Documents;
 using Reports.Identity;
 using Reports.Integration;
+using Reports.Integrity;
 using Reports.Security;
 
 namespace Reports.Desktop.Infrastructure;
@@ -35,9 +36,10 @@ public sealed class AppServices
 {
     private const int AuditRetentionDays = 365;
 
-    private AppServices(string dataFolder)
+    private AppServices(string dataFolder, StartupIntegrityResult integrity)
     {
         DataFolder = dataFolder;
+        IntegrityResult = integrity;
 
         // SEC-12: тека даних і база доступні лише власнику профілю; помилка не валить застосунок.
         TryProtect(dataFolder);
@@ -157,6 +159,14 @@ public sealed class AppServices
     /// </summary>
     public Func<string, string, Task<bool>> ConfirmSpreadsheet { get; set; } = (_, _) => Task.FromResult(false);
 
+    /// <summary>Результат перевірки цілісності під час запуску (SEC-16).</summary>
+    public StartupIntegrityResult IntegrityResult { get; }
+
+    public StartupIntegrityOutcome IntegrityState => IntegrityResult.Outcome;
+
+    /// <summary>True для непідписаної збірки: інтерфейс показує застереження.</summary>
+    public bool IntegrityWarning => IntegrityState == StartupIntegrityOutcome.NoManifest;
+
     public string TemplatePath => Renderer.TemplatePath;
     public string CredentialsPath => Authenticator.CredentialsPath;
 
@@ -173,24 +183,43 @@ public sealed class AppServices
     public IResponseSink? CreateResponseSink() =>
         Settings.UseDemoData ? null : new GoogleSheetsWriter(Authenticator, Settings, Confirmation, Guard);
 
-    public static AppServices Create()
+    public static AppServices Create(StartupIntegrityResult integrity)
     {
         var dataFolder = AppDataFolder.Resolve();
         Directory.CreateDirectory(dataFolder);
-        return new AppServices(dataFolder);
+        return new AppServices(dataFolder, integrity);
     }
 
     /// <summary>
     /// Створює й мігрує базу, гарантує вбудованого адміністратора і шаблон, записує
-    /// початкові події аудиту.
+    /// початкові події аудиту. Якщо перевірка цілісності провалена — лише записує подію.
     /// </summary>
     public async Task InitializeAsync()
     {
         await DatabaseInitializer.InitializeAsync(ContextFactory);
         TryProtect(ContextFactory.DatabasePath);
 
+        if (IntegrityState == StartupIntegrityOutcome.Failed)
+        {
+            Audit.Record(
+                AuditAction.IntegrityCheckFailed, AuditTarget.Application, null, AuditOutcome.Failure,
+                new Dictionary<string, string>
+                {
+                    ["reason"] = IntegrityResult.Reason,
+                    ["count"] = IntegrityResult.ProblemCount.ToString()
+                });
+            return;
+        }
+
         await new BootstrapService().EnsureBuiltInAdminAsync(Accounts);
         Renderer.EnsureTemplateExists();
+
+        if (IntegrityWarning)
+        {
+            Audit.Record(
+                AuditAction.IntegrityUnsigned, AuditTarget.Application, null, AuditOutcome.Success,
+                new Dictionary<string, string> { ["reason"] = IntegrityResult.Reason });
+        }
 
         Audit.Record(
             AuditAction.ApplicationStarted, AuditTarget.Application, null, AuditOutcome.Success,

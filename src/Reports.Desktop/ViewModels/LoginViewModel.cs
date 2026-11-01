@@ -42,12 +42,14 @@ public sealed class LoginViewModel : ObservableObject
         AuthenticationService authentication,
         ChangePasswordService changePassword,
         IAccountRepository accounts,
-        IPasswordHasher hasher)
+        IPasswordHasher hasher,
+        bool integrityWarning = false)
     {
         _authentication = authentication;
         _changePassword = changePassword;
         _accounts = accounts;
         _hasher = hasher;
+        IntegrityWarning = integrityWarning;
 
         SubmitCommand = new AsyncRelayCommand(SubmitAsync);
         BackCommand = new AsyncRelayCommand(BackAsync);
@@ -61,6 +63,10 @@ public sealed class LoginViewModel : ObservableObject
 
     /// <summary>Викликається, коли треба очистити поле пароля на кроці входу.</summary>
     public event EventHandler? CredentialPasswordCleared;
+
+    public bool IntegrityWarning { get; }
+
+    public string IntegrityWarningText => "Збірку не підписано (режим розробника).";
 
     public AsyncRelayCommand SubmitCommand { get; }
     public AsyncRelayCommand BackCommand { get; }
