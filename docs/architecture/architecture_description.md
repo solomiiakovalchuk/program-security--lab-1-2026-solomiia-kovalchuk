@@ -4,11 +4,11 @@
 |---|---|
 | Project | ReportsWpf, UAV and Ammunition Usage Reporting System |
 | Document | Architecture Description (ISO/IEC/IEEE 42010) |
-| Version / status / date | 0.2.0, Draft, 2026-10-17 |
+| Version / status / date | 0.3.0, Draft, 2026-11-04 |
 | Author | Solomiia Kovalchuk, group IPZs-24-1, KhNU |
 | Related | [StRS](../specification/stakeholder_requirements.md), [SRS](../specification/software_requirements.md), [Modules](../specification/modules.md), [Roadmap](../specification/roadmap.md), [Project policy](../policies/project_policy.md) |
 
-The system as a whole is not built yet; this document describes the planned architecture, and every element not noted otherwise is "Planned" with a target stage from the [roadmap](../specification/roadmap.md) (S2-S6). Two slices were pulled forward by course labs ahead of the rest of their stage: the `Reports.Core`/`Reports.Identity` domain logic (Lab 3) and `Reports.Security` (Lab 4, secrets-at-rest protection) - both exist as code with tests, neither is wired into a host application yet, since `Reports.Desktop` and `Reports.Data` are still S2/S3 work.
+The system is built through S6 (stages from the [roadmap](../specification/roadmap.md)). This document describes the architecture as built. Some parts were built ahead of their stage because of course labs: the `Reports.Core`/`Reports.Identity` domain logic (Lab 3), `Reports.Security` (Lab 4, secrets-at-rest protection) and `Reports.Integrity` (Lab 5, signed release manifest).
 
 ## 1 Introduction
 
@@ -16,7 +16,7 @@ The system as a whole is not built yet; this document describes the planned arch
 
 **Purpose of this document.** Fix the architecture before coding, give a base for the security policy and the STRIDE threat model (Lab 2), and link requirements, modules and decisions.
 
-**Planned solution.** Projects `Reports.Core`, `Reports.Data`, `Reports.Documents`, `Reports.Integration`, `Reports.Desktop` (S2-S5), then `Reports.Identity`, `Reports.Security` and `Reports.Audit` (S6), and test projects in `tests/` (S2). `Reports.Core`, `Reports.Identity`, `Reports.Security` and their test projects already exist (Lab 3, Lab 4); the rest of the list is still to build.
+**Solution.** Projects `Reports.Core`, `Reports.Data`, `Reports.Documents`, `Reports.Integration`, `Reports.Desktop`, `Reports.Identity`, `Reports.Security`, `Reports.Integrity` and `Reports.Audit`, and test projects in `tests/`. All of them exist.
 
 ## 2 Stakeholders and concerns
 
@@ -59,7 +59,7 @@ flowchart LR
     SYS <-->|tokens| OAUTH
 ```
 
-| Interface | Direction | Format | Planned class | Stage |
+| Interface | Direction | Format | Class | Stage |
 |---|---|---|---|---|
 | Google Sheets, responses and reference data | in | HTTPS, Sheets API v4 | `GoogleSheetsResponseSource` | S4 |
 | Google Sheets, reference data and statuses | out | `BatchUpdate`, RAW | `GoogleSheetsWriter` | S4, S6 |
@@ -95,9 +95,9 @@ Dependency rules, checked by architecture tests in CI (S2):
 
 All files are under `%AppData%\Рапорти`.
 
-| Artifact | Content | Sensitivity | Planned protection |
+| Artifact | Content | Sensitivity | Protection |
 |---|---|---|---|
-| `reports.db` (SQLite, WAL) | `Missions`, `TargetEngagements`, `MunitionUses`, `UavTypes`, `TargetTypes`, `MunitionTypes`, `Settlements`, `People`, `JournalEntries`; later `Accounts`, `AuditEvents` | High (email, military topic) | Profile rights, encryption decided in Lab 2 |
+| `reports.db` (SQLite, WAL) | `Missions`, `TargetEngagements`, `MunitionUses`, `UavTypes`, `TargetTypes`, `MunitionTypes`, `Settlements`, `People`, `JournalEntries`, `Accounts`, `AuditEvents` | High (email, military topic) | Profile rights, encryption decided in Lab 2 |
 | `settings.json` | Unit details, `SpreadsheetId`, sheet names, output folder, `UseDemoData` | Medium | No secrets inside |
 | `credentials.json` | OAuth client id and secret, put there by the user | High | Not in the repo, DPAPI (S6) |
 | `token-rw\` | OAuth access and refresh tokens | High | DPAPI `CurrentUser` (S6) |
@@ -149,7 +149,7 @@ The formal STRIDE threat model comes in Lab 2 (`docs/security/threat_model.md`).
 - App to Google Sheet and OAuth: writes, token and scope.
 - App to file system: secrets and database are in the user profile.
 
-**Planned controls:**
+**Controls:**
 
 | Control | Where | Stage |
 |---|---|---|
@@ -173,8 +173,8 @@ The formal STRIDE threat model comes in Lab 2 (`docs/security/threat_model.md`).
 
 ## 6 Risks and open questions
 
-- Before S6 there is no login, so anyone in the Windows profile has full access to the data.
-- Token, `credentials.json` and the database are plain files until S6. DPAPI should be enough, to be confirmed in the threat model.
+- Login and roles exist from S6. Before S6 there was no login, so anyone in the Windows profile had full access to the data.
+- The token and `credentials.json` are encrypted (SEC-05, key protected by DPAPI). `reports.db` is not encrypted; it relies on owner-only rights (SEC-12) and disk encryption (threat model, T-14).
 - Open: encrypt `reports.db` (SQLCipher) or rely on NTFS rights. How to recover access if the only Administrator forgets the password.
 - Open: an edited sheet row gets a new content hash and is imported as a new mission. A service ID column may be needed.
 - Open: narrower OAuth scope such as `drive.file` while still reading a sheet the app did not create. Keep demo mode and add a PDF renderer in release 1.0 or not.

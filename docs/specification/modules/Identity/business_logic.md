@@ -1,6 +1,6 @@
 # ====== [Identity] BUSINESS LOGIC ======
 
-Status: Domain logic implemented ahead of schedule in `src/Reports.Core` and `src/Reports.Identity` (Lab 3); persistence (`Reports.Data`, SQLite), wiring into `Reports.Desktop` and `Audit` events remain stage S6, see the [roadmap](../../roadmap.md)
+Status: Implemented in S6. Domain logic in `src/Reports.Core` and `src/Reports.Identity` was started in Lab 3. SQLite persistence (`Reports.Data`), the login UI in `Reports.Desktop`, account administration and Audit events are done. See the [roadmap](../../roadmap.md)
 
 ## Purpose
 `Identity` owns:
@@ -78,4 +78,5 @@ Delivered to `Audit` in-process through `IAuditSink`. No password, hash or salt 
 - Table `Accounts` in the same SQLite `reports.db` (one database, atomic updates, unique index on `LoginNormalized`), added by an EF Core migration. Times are UTC, hash column up to 256 chars.
 - `IAccountRepository` (contract in Core, implementation in `Reports.Data`). The code lives in the separate project `Reports.Identity`, which depends only on `Reports.Core`. Services are registered in `AppServices`.
 - The hash does not protect against replacing a record in the database file. File protection is a separate security requirement.
-- Lab 3 interim: `Reports.Identity.InMemoryAccountRepository` implements `IAccountRepository` in memory, so the domain logic and its tests do not depend on `Reports.Data`/SQLite, which is still stage S3. It is replaced by the EF Core-backed repository when `Reports.Data` exists; the contract does not change.
+- `Reports.Identity.InMemoryAccountRepository` is now used only by the tests, so the domain logic does not depend on SQLite. Production uses the EF Core repository in `Reports.Data`; the contract did not change.
+- Not done: no command or UI changes `PasswordRestrictionsEnabled` for an account. The flag exists, but it has no setter.

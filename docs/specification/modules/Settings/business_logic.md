@@ -1,6 +1,6 @@
 # ====== [Settings] BUSINESS LOGIC ======
 
-Status: Planned (stage S3, UI in S5)
+Status: Implemented (S3, UI in S5)
 
 ## Purpose
 `Settings` owns:

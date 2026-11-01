@@ -3,14 +3,14 @@
 | | |
 | --- | --- |
 | Name | Test plan and strategy - ReportsWpf |
-| Version | 0.1.0 |
+| Version | 0.3.0 |
 | Status | Draft |
-| Last update | 2026-09-19 |
+| Last update | 2026-11-04 |
 | Author | Solomiia Kovalchuk |
 
 ## Purpose
 
-This document plans how the system will be checked against the [software requirements](../specification/software_requirements.md). The system is not built yet, so this is a plan. Tests are written together with the code of each stage. The rules are in the [project policy](../policies/project_policy.md#testing-policy).
+This document plans how the system will be checked against the [software requirements](../specification/software_requirements.md). The system is built through S6. The levels below are the plan that was followed, and the inventory at the end lists the tests that exist. Tests are written together with the code of each stage. The rules are in the [project policy](../policies/project_policy.md#testing-policy).
 
 - No real network calls, Google is replaced with fakes.
 - Unit tests come first. Every area has valid and invalid cases. Tests clean up after themselves.
@@ -27,7 +27,7 @@ This document plans how the system will be checked against the [software require
 | Security | Passwords, roles, audit, untrusted data, formula injection | S3 (input validation), S6 |
 | Architecture | Layer boundaries | S2 |
 
-Manual checks (clean Windows, real Google Sheet, look at the `.docx`) are done in S7.
+Manual checks (clean Windows, real Google Sheet, look at the `.docx`) are done in S7. Visual UI checks and real Google calls are manual, not automated.
 
 ## Tools
 
@@ -47,4 +47,17 @@ In S2 coverage is only collected. From S3 the report is checked in every PR. In 
 
 ## CI
 
-GitHub Actions on `windows-latest` (WPF needs Windows), added in S2. Every PR to `develop` and `main` runs: build with warnings as errors, `dotnet test` with coverage and architecture tests, `dotnet format --verify-no-changes`, `dotnet list package --vulnerable --include-transitive` and a secret scan. Any error rejects the PR. Before S2 the PR template checklist is used by hand.
+GitHub Actions on `windows-latest` (WPF needs Windows) is planned, but CI is not set up yet (there is no workflow file). The planned checks for every PR to `develop` and `main`: build with warnings as errors, `dotnet test` with coverage and architecture tests, `dotnet format --verify-no-changes`, `dotnet list package --vulnerable --include-transitive` and a secret scan. Until CI exists, the tests run locally with `dotnet test`, the other checks are done by manual review, and the result is noted in the PR.
+
+## Current test inventory
+
+| Project | Tests | What it covers |
+| --- | --- | --- |
+| `Reports.Identity.Tests` | 95 | Login, passwords and hashing, lockout, account management, access policy |
+| `Reports.Integration.Tests` | 60 | Sheet input validation, sync limits, spreadsheet confirmation, write safety, OAuth scope, secret storage |
+| `Reports.Audit.Tests` | 34 | Audit recording, hash chain, export, retention |
+| `Reports.Integrity.Tests` | 15 | Signed release manifest check |
+| `Reports.Desktop.Tests` | 12 | Login ViewModel, icon names |
+| `Reports.Security.Tests` | 10 | Protected data store (AES-GCM, DPAPI key) |
+| `Reports.Data.Tests` | 13 | SQLite repositories, migrations and upgrade of a database made by the old app |
+| **Total** | **239** | Automated tests, all passing. `Reports.SmokeTest` is a console check and is not counted. |

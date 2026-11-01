@@ -5,8 +5,8 @@ Outline follows ISO/IEC/IEEE 29148:2018, adapted to the size of the project.
 | Field | Value |
 |---|---|
 | Title | ReportsWpf - UAV and Ammunition Usage Reporting System. Software requirements |
-| Version / status | 0.1.0 / Draft |
-| Date | 2026-09-19 |
+| Version / status | 0.2.0 / Draft |
+| Date | 2026-11-04 |
 | Author | Solomiia Kovalchuk, group IPZs-24-1, KhNU |
 | Course | Program and Data Security, Lab 1 |
 | Input | [StRS](stakeholder_requirements.md) |
@@ -14,13 +14,13 @@ Outline follows ISO/IEC/IEEE 29148:2018, adapted to the size of the project.
 
 ## 1 Introduction
 
-**Purpose.** This document lists the verifiable requirements for ReportsWpf. The system is not built yet. Every requirement is planned and has a priority (MoSCoW) and a target stage S0-S7 from the [roadmap](roadmap.md). Tests are derived from these requirements.
+**Purpose.** This document lists the verifiable requirements for ReportsWpf. The system is built through S6, except the open items in section 4.1. Every requirement has a priority (MoSCoW) and a target stage S0-S7 from the [roadmap](roadmap.md). Tests are derived from these requirements.
 
 **Scope.** ReportsWpf is a local Windows desktop application. It imports episodes from a Google Sheet (or from demo data), stores them in SQLite, summarises them for a period and generates a .docx report. It also has login, roles and an audit log.
 
-**Product overview.** The application is stand-alone, there is no server. It talks to Google Sheets API, the Windows file system and Word templates. The layered architecture has the projects Reports.Core, Reports.Data, Reports.Documents, Reports.Integration and Reports.Desktop, plus Reports.Identity and Reports.Audit later. Details are in the architecture description.
+**Product overview.** The application is stand-alone, there is no server. It talks to Google Sheets API, the Windows file system and Word templates. The layered architecture has the projects Reports.Core, Reports.Data, Reports.Documents, Reports.Integration and Reports.Desktop, plus Reports.Identity, Reports.Security, Reports.Integrity and Reports.Audit. Details are in the architecture description.
 
-Modules (all planned): ReferenceData, Episodes, Reporting, Settings (S3); Documents, GoogleSheetsIntegration (S4); Identity, Audit (S6).
+Modules (all implemented): ReferenceData, Episodes, Reporting, Settings (S3); Documents, GoogleSheetsIntegration (S4); Identity, Audit (S6).
 
 Users: the report writer (role Operator) uses sync, episodes, reports and the journal. The administrator (role Administrator) can also manage accounts, settings, reference lists, upload to the sheet and the audit log. Roles are introduced at S6.
 
@@ -115,6 +115,7 @@ Users: the report writer (role Operator) uses sync, episodes, reports and the jo
 | SEC-13 | Every audit record shall contain a hash of its content and of the previous record, and the audit view shall warn the administrator if the chain is broken | Should | S6 |
 | SEC-14 | The system shall show the title of the target spreadsheet and ask the administrator to confirm it before the first write and after the spreadsheet ID changes, and shall record such a change in the audit log | Should | S6 |
 | SEC-15 | The system shall limit the rows and the cell length read from the sheet in one sync, let the user cancel the sync, and say in the sync summary when data was truncated | Should | S4 |
+| SEC-16 | Every release shall ship a manifest of its critical files (path and SHA-256) signed with an offline ECDSA P-256 key. The client shall contain only the public key and shall verify the signature and the file hashes before trusting a shipped file or an update | Should | S6 |
 
 ### 3.5 Design constraints
 
@@ -147,6 +148,16 @@ Users: the report writer (role Operator) uses sync, episodes, reports and the jo
 | SEC-13 | Test of Audit module (broken hash chain is detected) |
 | SEC-14 | Test with a fake sheet (title shown and confirmed), check of the audit record |
 | SEC-15 | Test with a large fake sheet (limit, cancel, truncation message) |
+| SEC-16 | Tests of `Reports.Integrity`: tampered file, missing file, tampered manifest and wrong key are rejected |
+
+### 4.1 Implementation status (S6)
+
+Implemented in S6: FR-26 to FR-31, SEC-01 to SEC-09, SEC-12 to SEC-16 (SEC-05 and SEC-06 as described in the GoogleSheetsIntegration module, SEC-16 as a check at application startup). Stages S2 to S5 are implemented as well, see the [roadmap](roadmap.md).
+
+Open items:
+- FR-21: row keys are still timestamp plus row number, not a content hash.
+- SEC-10 (secret scan in CI) and SEC-11 (vulnerability check in CI): no CI workflow exists yet, so these checks are not automated. The final check of SEC-11 stays with S7.
+- `PasswordRestrictionsEnabled` switch: the flag exists for each account, but no command or UI changes it.
 
 ## 5 Traceability
 

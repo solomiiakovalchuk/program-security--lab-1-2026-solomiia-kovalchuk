@@ -1,8 +1,8 @@
 # Module Registry - ReportsWpf
 
-Version 0.1.0, Draft, 2026-09-19. Author: Solomiia Kovalchuk, IPZs-24-1, KhNU.
+Version 0.2.0, Draft, 2026-11-04. Author: Solomiia Kovalchuk, IPZs-24-1, KhNU.
 
-A module here is a logical boundary of the business area. The code will be split by layers (`Reports.Core`, `Reports.Data`, `Reports.Documents`, `Reports.Integration`, `Reports.Desktop`, and later `Reports.Identity` and `Reports.Audit`), not one project per module. All modules are Planned. Stages are from the [roadmap](roadmap.md).
+A module here is a logical boundary of the business area. The code is split by layers (`Reports.Core`, `Reports.Data`, `Reports.Documents`, `Reports.Integration`, `Reports.Desktop`, `Reports.Identity` and `Reports.Audit`), not one project per module. ReferenceData, Episodes, Reporting, Settings, Documents, GoogleSheetsIntegration, Identity and Audit are implemented (stages S3 to S6). Stages are from the [roadmap](roadmap.md).
 
 Related documents: [StRS](stakeholder_requirements.md), [SRS](software_requirements.md), [architecture](../architecture/architecture_description.md), [project policy](../policies/project_policy.md).
 

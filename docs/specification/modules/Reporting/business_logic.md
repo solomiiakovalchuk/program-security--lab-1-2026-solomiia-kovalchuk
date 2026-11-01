@@ -1,6 +1,6 @@
 # ====== [Reporting] BUSINESS LOGIC ======
 
-Status: Planned (stage S3)
+Status: Implemented (S3)
 
 ## Purpose
 `Reporting` owns:

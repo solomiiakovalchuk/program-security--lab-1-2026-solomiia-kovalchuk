@@ -3,10 +3,10 @@
 | | |
 | --- | --- |
 | Name | Security Policy - ReportsWpf (UAV and Ammunition Usage Reporting System) |
-| Version | 0.1.0 |
+| Version | 0.3.0 |
 | Status | Draft |
 | Classification | Internal |
-| Last update | 2026-09-26 |
+| Last update | 2026-11-04 |
 | Owner | Solomiia Kovalchuk |
 | Related documents | [project_policy.md](../policies/project_policy.md), [privacy_policy.md](privacy_policy.md), [threat_model.md](threat_model.md), [software_requirements.md](../specification/software_requirements.md) |
 
@@ -43,7 +43,7 @@ The policy follows the secure development practices of NIST SP 800-218 (SSDF) an
 
 The policy covers:
 
-- all code in `src/` and `tests/`, configuration in `config/`, scripts in `scripts/`, the CI workflows in `.github/` and `Directory.Packages.props`;
+- all code in `src/` and `tests/`, configuration in `config/`, scripts in `scripts/`, the PR template in `.github/` (CI workflows are planned, not set up) and `Directory.Packages.props`;
 - all documents in `docs/`;
 - the runtime data of one installation: `%AppData%\Рапорти` (`reports.db`, `settings.json`, `credentials.json`, `token-rw\`, `template.docx`, generated reports, `error.log`);
 - third-party NuGet packages and the Google Sheets API used through the user's own Google account.
@@ -87,17 +87,18 @@ The project has one developer, so there is no second developer to review changes
 - Commits: format `[TYPE] summary`, security changes use `[SEC]`. A commit has one purpose.
 - Secrets: `credentials.json`, `token*`, `*.db`, `settings.json` and `*.log` are excluded by `.gitignore` (SEC-10). Real data never goes into tests. Tests use fake data and temp folders and never touch the real `%AppData%`.
 - Dependencies: versions are set only in `Directory.Packages.props` (Central Package Management). Each new package goes in a separate commit with the reason, and before adding it the developer checks the publisher, the licence and known vulnerabilities. Packages are restored only from nuget.org.
-- Checks in CI (GitHub Actions on `windows-latest`, from S2): build with warnings as errors, Roslyn analyzers, `dotnet format --verify-no-changes`, tests, architecture tests, a secret scan and `dotnet list package --vulnerable --include-transitive` (SEC-10, SEC-11). Until CI exists, the same steps are done by hand and noted in the PR.
-- Security tests run in CI from S2 (input validation tests from S3, Identity and Audit tests in S6). A failing security test blocks the merge.
+- Planned checks in CI (GitHub Actions on `windows-latest`): build with warnings as errors, Roslyn analyzers, `dotnet format --verify-no-changes`, tests, architecture tests, a secret scan and `dotnet list package --vulnerable --include-transitive` (SEC-10, SEC-11). CI is not set up yet (there is no workflow file). Until it exists, the checks run locally with `dotnet test` and manual review, and the result is noted in the PR.
+- Security tests (input validation from S3, Identity and Audit from S6) run locally with `dotnet test`; they move into CI once it is set up. A failing security test blocks the merge.
 - Workstation: the developer keeps Windows and .NET SDK updated and uses a Windows account protected by a password.
 - AI agents: they get the task and the repository, but not real credentials, tokens, keys or real operator data. Their changes are read by the developer before commit.
 
 ## Software Protection
 
-- The repository holds code and documents only. Build output (`bin/`, `obj/`, `publish/`) is excluded and the release is built from a clean checkout by CI.
+- The repository holds code and documents only. Build output (`bin/`, `obj/`, `publish/`) is excluded. The release is planned to be built from a clean checkout by CI, once CI is set up.
 - A release is a tag `vX.Y.Z` on `main` after the release checks in [Security Verification](#security-verification). The release package does not contain `credentials.json`, tokens, databases or logs.
-- The OAuth token (`token-rw\`) and `credentials.json` are stored with DPAPI for the current Windows user, not as plain text (SEC-05, from S6). Before S6 they are plain files and the PC profile is the only protection (see the risks in the [architecture description](../architecture/architecture_description.md)).
+- The OAuth token (`token-ro\`, `token-rw\`) and `credentials.json` are stored encrypted, not as plain text (SEC-05). The key is protected by DPAPI for the current Windows user. A `credentials.json` placed by the user is imported and the plain file is deleted.
 - The data folder and `reports.db` must be readable only by the owner of the Windows profile (SEC-12). Whether to encrypt `reports.db` is decided by the threat model.
+- Distributed artifacts (SEC-16): the release manifest (file paths and SHA-256) is signed with an offline ECDSA P-256 private key. Only the public key ships in the client. The signature and the file hashes are verified before a shipped file, a config default or an update is trusted. The private key (`config/release-signing.key`) is never committed.
 - Passwords are never stored in a recoverable form (see Secure Implementation).
 - `error.log`, the audit log and exception messages never contain passwords, hashes, tokens, the client secret or the content of reports and submissions.
 - Backups of the data folder are made by the user. They contain personal data and must be kept as carefully as the folder itself.
@@ -126,12 +127,12 @@ Rules for the code. Each one is a reviewed and tested requirement.
 
 | Check | When | What it covers |
 | --- | --- | --- |
-| Unit and security tests | every PR from S2 | Validation of sheet data (S3), tag injection, formula injection, password hashing, lockout, role checks, audit content (S6) |
+| Unit and security tests | every change, locally with `dotnet test` (CI planned) | Validation of sheet data (S3), tag injection, formula injection, password hashing, lockout, role checks, audit content (S6) |
 | Negative tests | every PR | Malicious values (formulas, tags, long text, bad dates), wrong roles, bad settings file |
-| Architecture tests | every PR from S2 | Layer rules, no EF Core, OpenXML or Google types in `Reports.Core` |
-| Roslyn analyzers, `dotnet format` | every PR from S2 | Code quality and some security rules |
-| Vulnerability check of packages | every PR from S2 | `dotnet list package --vulnerable --include-transitive` (SEC-11) |
-| Secret scan | every PR from S2 | Tokens and keys in files and history (SEC-10) |
+| Architecture tests | planned, not implemented yet | Layer rules, no EF Core, OpenXML or Google types in `Reports.Core` |
+| Roslyn analyzers, `dotnet format` | planned (CI not set up) | Code quality and some security rules |
+| Vulnerability check of packages | planned in CI, can be run locally | `dotnet list package --vulnerable --include-transitive` (SEC-11) |
+| Secret scan | planned in CI, not automated yet | Tokens and keys in files and history (SEC-10) |
 | Manual review | changes in Identity, Audit, secrets, OAuth and sheet writing | The developer rereads the diff with the threat model, the teacher reviews on request |
 | Release check | before S7 and release 1.0 | Full dependency check, check of the Google consent screen and scopes, check of file rights, test run on a clean Windows |
 
@@ -179,6 +180,7 @@ A deviation from this policy is possible only when the rule cannot be met for a 
 - [Architecture description](../architecture/architecture_description.md): data stores, trust boundaries, planned controls.
 - Module descriptions: [Identity](../specification/modules/Identity/business_logic.md), [Audit](../specification/modules/Audit/business_logic.md), [GoogleSheetsIntegration](../specification/modules/GoogleSheetsIntegration/business_logic.md).
 - [Test strategy](../testing/test_strategy.md).
+- [Integrity and distribution](integrity_and_distribution.md): signed release manifest (SEC-16).
 - External: NIST SP 800-218 (SSDF), OWASP ASVS and Cheat Sheet Series (password storage, CSV injection), Microsoft DPAPI documentation.
 
 ## Final Provisions

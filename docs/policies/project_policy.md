@@ -65,7 +65,7 @@ The solution will consist of isolated layer projects. Dependencies point only to
 | Infrastructure | `Reports.Data`, `Documents`, `Integration`, `Identity`, `Audit` | Implementations of the contracts: EF Core/SQLite, `.docx`, Google Sheets and demo source, authentication, audit log |
 | Presentation | `Reports.Desktop` | Views, ViewModels, composition root, global error handler |
 
-Test projects in `tests/` mirror the `src/` projects (`Reports.Core.Tests`, `Reports.Data.Tests`, and so on). `Reports.Identity` and `Reports.Audit` are planned for S6.
+Test projects in `tests/` mirror the `src/` projects (`Reports.Core.Tests`, `Reports.Data.Tests`, and so on). `Reports.Identity`, `Reports.Security`, `Reports.Integrity` and `Reports.Audit` exist. Test projects now: Audit, Data, Desktop, Identity, Integration, Integrity and Security (there is no `Reports.Core.Tests` yet).
 
 Allowed `ProjectReference` directions:
 
@@ -197,7 +197,7 @@ Documentation is a deliverable. Outdated or missing documentation is a defect. C
 The structure is: `docs/specification/` (stakeholder_requirements.md, software_requirements.md, modules.md, roadmap.md, modules/<Module>/business_logic.md), `docs/architecture/architecture_description.md`, `docs/policies/project_policy.md`, `docs/security/README.md` (Lab 2 adds security_policy.md, privacy_policy.md, threat_model.md), `docs/testing/test_strategy.md`.
 
 - `modules.md` is the entry point to the modules: description, boundaries, status, dependencies.
-- `business_logic.md` is the only file per module. It describes purpose, entities and invariants, rules, what does not live here, and dependencies. Status is "Planned" with a target stage.
+- `business_logic.md` is the only file per module. It describes purpose, entities and invariants, rules, what does not live here, and dependencies. Status is "Planned" or "Implemented", with the stage.
 - Requirements have simple IDs: `STK-01`, `FR-01`, `NFR-01`, `SEC-01`, `CON-01`.
 - Whoever changes a module updates its `business_logic.md` and the related requirements in the same change.
 - Documents are in English, short, with lists and tables. Date and version are in the header.

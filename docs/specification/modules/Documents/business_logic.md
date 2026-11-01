@@ -1,6 +1,6 @@
 # ====== [Documents] BUSINESS LOGIC ======
 
-Status: Planned (stage S4)
+Status: Implemented (S4)
 
 ## Purpose
 `Documents` owns:

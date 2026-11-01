@@ -1,6 +1,6 @@
 # ====== [Audit] BUSINESS LOGIC ======
 
-Status: Planned (stage S6)
+Status: Implemented in S6 (project `Reports.Audit`, table `AuditEvents` in `reports.db`)
 
 The audit log complements the report journal (`JournalEntry` in `Reporting`) and the technical `error.log`, it does not replace them. Numeric limits are design values, the final ones are fixed in the SRS.
 
@@ -19,7 +19,7 @@ The audit log complements the report journal (`JournalEntry` in `Reporting`) and
 ## Entities
 | Entity | Basic Fields | Description | Invariants |
 |---|---|---|---|
-| `AuditEvent` *(extends `Entity`, append-only)* | `EventUuid`, `OccurredAtUtc`, `ActorAccountId?`, `ActorLogin`, `ActionType`, `TargetType`, `TargetId?`, `Outcome`, `Details`, `OsUser`, `MachineName` | One log record (table `AuditEvents`). | - Immutable after creation, no update or delete through the app.<br>- `OccurredAtUtc` is UTC and set by the service, not by client code.<br>- `ActorLogin` is a snapshot at event time (kept if the account is deleted). Use `system` for system actions and `anonymous` before login, with a null account id.<br>- `ActionType` and `Outcome` come only from the registry.<br>- `Details` max 2000 chars, sanitized, no secrets. `EventUuid` is unique. |
+| `AuditEvent` *(append-only, does not extend `Entity`)* | `Id` (long, chain order), `EventUuid` (Guid), `OccurredAtUtc`, `ActorAccountId?`, `ActorLogin`, `ActionType`, `TargetType`, `TargetId?`, `Outcome`, `Details`, `OsUser`, `MachineName`, `PrevHash`, `Hash` | One log record (table `AuditEvents`). | - Immutable after creation, no update or delete through the app.<br>- `OccurredAtUtc` is UTC and set by the service, not by client code.<br>- `ActorLogin` is a snapshot at event time (kept if the account is deleted). Use `system` for system actions and `anonymous` before login, with a null account id.<br>- `ActionType` and `Outcome` come only from the registry.<br>- `Details` max 2000 chars, sanitized, no secrets. `EventUuid` is unique. |
 | `AuditAction` *(registry)* | key like `Auth.LoginSucceeded` | Catalog of event types. | - Keys are stable and never reused. |
 | `AuditOutcome` *(enum)* | `Success`, `Failure`, `Denied` | Result. | - `Denied`: blocked by access policy. `Failure`: executed but failed. |
 
@@ -34,7 +34,7 @@ Event types by area:
 ## Recording flow
 1. A source module performs the action and calls `IAuditSink.Record(...)` with action, target, result and raw details. Identity events come from its domain events.
 2. `AuditRecordingService` adds `OccurredAtUtc`, the actor from `ISessionContext`, OS user and machine name, and sanitizes `Details`.
-3. The record is appended to `AuditEvents`. For security events of `Identity` (account, password, lockout changes) it is written in the same transaction as the change. For other events a write failure does not cancel the business operation, it goes to `error.log`.
+3. The record is appended to `AuditEvents`. Security events of `Identity` (account, password, lockout changes) are recorded right after the change through `IAuditSink`, not in the same transaction as the change. For other events a write failure does not cancel the business operation, it goes to `error.log`.
 4. The administrator views the log (`ListAuditEventsAQ`) and may export it (`ExportAuditAC`).
 
 *Boundary:* Audit receives, stores, queries and exports. The source module decides what is an event and calls `IAuditSink`.
@@ -47,13 +47,13 @@ Event types by area:
 ## Domain Policies
 | Domain Policy | Description |
 |---|---|
-| `AppendOnlyDPolicy` | The repository has `Append` and queries, no `Update` or `Delete`. An optional SQLite trigger can forbid `UPDATE`. The only deletion is retention. |
+| `AppendOnlyDPolicy` | The repository has `Append` and queries, no `Update` or `Delete`. A SQLite trigger forbids `UPDATE`. The only deletion is retention. |
 | `NoSecretsDPolicy` | Never logged: passwords, hashes, salts, tokens, client secret, `credentials.json` content, full settings values, report or submission content. `Details` is built from a whitelist, so a new sensitive field does not leak automatically. |
 | `PersonalDataDPolicy` | Minimize personal data: ids instead of names where possible. Operator email appears only in People directory events. |
 | `RetentionDPolicy` | Records are kept 365 days by default (an administrator can change it, minimum 90 days). Older records are deleted only by `ApplyAuditRetentionAC` (Administrator) after a successful export, and this is logged as `Audit.RetentionApplied`. No automatic background deletion. |
 | `ReadAccessDPolicy` | Viewing and export only for `Administrator`. |
 | `ExportSafetyDPolicy` | Export to CSV or JSON. Cells starting with `=`, `+`, `-`, `@` get a `'` prefix (no formula injection). The export is logged. |
-| `OrderingDPolicy` | Read order: `OccurredAtUtc` descending, then `Id`. Times are UTC (from `IClock`), shown as local time in the UI. A hash chain (`PrevHash`, `Hash`) is an optional later improvement. |
+| `OrderingDPolicy` | Read order: `OccurredAtUtc` descending, then `Id`. Times are UTC (from `IClock`), shown as local time in the UI. A hash chain (`PrevHash`, `Hash`) is implemented (SEC-13). |
 
 ## Domain Services
 - `AuditRecordingService`: completes the record with actor, time, host, sanitizes details, appends it. `AuditDetailsSanitizer` *(internal - no UC)*: builds `AuditDetails` from the whitelist.
@@ -67,6 +67,14 @@ None published. Audit consumes events of other modules (mainly `Identity`) throu
 - Queries (`AQ`): `ListAuditEventsAQ` (page by period, actor, action, result), `GetAuditEventAQ`, `ListAuditActorsAQ` (for the UI filter).
 
 ## Infrastructure
-- Table `AuditEvents` in the same `reports.db` (transactions together with account changes), with indexes on `OccurredAtUtc`, `ActorLogin`, `ActionType` and a unique `EventUuid`. The schema comes from an EF Core migration.
+- Table `AuditEvents` in the same `reports.db` (not in the same transaction as account changes, see the recording flow), with indexes on `OccurredAtUtc`, `ActorLogin`, `ActionType` and a unique `EventUuid`. The schema comes from an EF Core migration.
 - `IAuditRepository` (contract in Core, implementation in `Reports.Data`): `AppendAsync`, `QueryAsync`, `CountAsync`, `DeleteOlderThanAsync` (only for retention).
 - The code lives in the separate project `Reports.Audit`, which depends only on `Reports.Core`. The UI has an "Audit log" tab visible only to `Administrator`.
+
+## Implementation notes and deviations
+
+- Events are recorded right after the change through `IAuditSink`, not in the same DB transaction as the change.
+- `AuditEvent` has a `long Id` (chain order) and a `Guid EventUuid`. It does not extend `Entity`.
+- Times are stored as UTC ticks.
+- The hash chain (`PrevHash`, `Hash`, SEC-13) is implemented now. This doc listed it as a later improvement.
+- New actions: `App.Started`, `App.IntegrityCheckFailed`, `App.IntegrityUnsigned`, `Google.SpreadsheetChanged` (details `fromId`, `toId`).

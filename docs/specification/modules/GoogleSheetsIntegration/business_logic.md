@@ -1,6 +1,6 @@
 # ====== [GoogleSheetsIntegration] BUSINESS LOGIC ======
 
-Status: Planned (stage S4, secret protection and minimal scope in S6)
+Status: Implemented (stage S4; secret protection, minimal scope and write safety in S6). FR-21 is still open.
 
 ## Purpose
 `GoogleSheetsIntegration` owns:
@@ -28,7 +28,7 @@ No persistent entities. Contracts and service types:
 
 Expected sheet layout (names set in Settings): Responses (row 1 headers, data from row 2), Directories (four blocks side by side: UAV, targets, munitions, settlements with region, data from row 3), People (`Email, Full name, Rank, Position`, data from row 2). If the row count exceeds a reading limit (value in SRS), the sync summary says that data was truncated.
 
-Row key: same format as in `Episodes` (`g1:<32 hex chars of SHA-256 of normalized content>`, status column not hashed, `#2` for identical rows, `demo|N` for the demo source). It never contains a row number.
+Row key: same format as in `Episodes` (`g1:<32 hex chars of SHA-256 of normalized content>`, status column not hashed, `#2` for identical rows, `demo|N` for the demo source). It never contains a row number. This is the target format. Current state: row keys are still timestamp plus row number, and the switch to the content hash is FR-21, still open.
 
 ## Sync and publish flows
 Read: the source is chosen by `UseDemoData` (default true, demo mode has no sink). Load directories, merge them in `ReferenceData`, load responses (a `RowKey` for each row), import in `Episodes`.
@@ -50,8 +50,8 @@ Publish (`PublishService.PublishAsync`, disabled in demo mode):
 | RAW writes | Everything is written as `RAW`, so values starting with `=`, `+`, `-`, `@` stay text (no formula injection). Data read from the sheet is untrusted. |
 | Columns by headers | Fields are matched from the most specific keyword to the most general, each column to one field. Ambiguous or missing fields go to `Diagnosis`. Required: UAV type, target type, count, settlement, at least one munition. |
 | Parsing | Fixed set of date formats with `InvariantCulture`, then Excel serial numbers. Bad or negative count becomes 0. No dependence on OS culture. |
-| Least privilege | Reading asks only `spreadsheets.readonly`, the write scope is asked at the first publish. |
-| Secrets | Client secret and token never go to the repository, error texts, technical log or audit log. The token is stored encrypted (DPAPI, S6). "Forget token" needs user confirmation and is audited. |
+| Least privilege | Reading asks only `spreadsheets.readonly`. The write scope is requested only when `UploadEnabled` is on (default off, Administrator only). |
+| Secrets | Client secret and token never go to the repository, error texts, technical log or audit log. The token is stored encrypted (AES-256-GCM, key protected by DPAPI, S6). "Forget token" needs user confirmation and is audited. |
 | Errors and retries | 429/5xx and timeouts are retried with backoff. API errors are explained by HTTP code (404, 403, 401, 429, 400). |
 
 ## Domain Services
@@ -65,5 +65,12 @@ Services and ViewModels play this role.
 
 ## Infrastructure
 - Library `Google.Apis.Sheets.v4`, version pinned in `Directory.Packages.props`. `Reports.Integration` depends only on `Reports.Core`.
-- Files in `%AppData%\Рапорти\`: `credentials.json` (OAuth client, placed by the user) and `token-rw\` (token cache, DPAPI-encrypted from S6).
+- Files in `%AppData%\Рапорти\`: `credentials.json` (OAuth client, placed by the user; from S6 it is imported into `credentials.enc` and the plain file is deleted), `token-ro\` and `token-rw\` (token caches). From S6 they are encrypted with AES-256-GCM, and the key comes from HKDF over a DPAPI-protected `master.key`.
 - Setup: Google Cloud Console, enable Sheets API, OAuth consent (External, test users), OAuth client "Desktop app". Sync, publish, token and connection-check events go to `IAuditSink` from S6, without token and client secret.
+
+## Implemented security behaviour (S6)
+
+- SEC-05: the OAuth token and `credentials.json` are stored with `ProtectedDataStore` (AES-256-GCM, key from HKDF over a DPAPI-protected `master.key`). A `credentials.json` placed by the user is imported into `credentials.enc`, and the plain file is overwritten and deleted. Token folders are `token-ro` and `token-rw`.
+- SEC-06 and SEC-07: import uses the read-only scope. The write scope is used only when `UploadEnabled` is on (default off, Administrator only). Writes use RAW, and values starting with `=`, `+`, `-`, `@` get a leading apostrophe.
+- SEC-14 and SEC-15: the spreadsheet title and ID are shown for confirmation before the first write and after the ID changes, and the change is audited. Limits are 5000 rows and 500 cells per value, with cancel and a truncation note in the summary.
+- FR-21 is open: row keys are still timestamp plus row number.

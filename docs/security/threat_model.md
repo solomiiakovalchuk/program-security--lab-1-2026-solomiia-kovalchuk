@@ -3,16 +3,16 @@
 | | |
 | --- | --- |
 | Name | Threat Model - ReportsWpf (UAV and Ammunition Usage Reporting System) |
-| Version | 0.1.0 |
+| Version | 0.3.0 |
 | Status | Draft |
 | Classification | Internal |
-| Last update | 2026-09-26 |
+| Last update | 2026-11-04 |
 | Owner | Solomiia Kovalchuk |
 | Related documents | [architecture_description.md](../architecture/architecture_description.md), [security_policy.md](security_policy.md), [privacy_policy.md](privacy_policy.md), [software_requirements.md](../specification/software_requirements.md) (section 3.4, SEC-xx) |
 
 ## Scope
 
-The project is small, so there is one model for the whole system. The system is not built yet, the model is about the planned design (stages S2 to S6), and it is checked again when the code appears.
+The project is small, so there is one model for the whole system. The system is built through S6 (stages S2 to S6). The model was first written for the planned design, and it is checked again when the code changes.
 
 The model covers:
 
@@ -20,7 +20,7 @@ The model covers:
 - the local data store `%AppData%\Рапорти`: `reports.db`, `settings.json`, `credentials.json`, `token-rw\`, `template.docx`, generated reports and `error.log`;
 - the Google Sheets and OAuth 2.0 integration: reading, publishing, token handling and the data on the wire;
 - report generation to `.docx`;
-- Identity (login, roles) and Audit (audit log), planned for S6;
+- Identity (login, roles) and Audit (audit log), built in S6;
 - the Git repository and NuGet dependencies, only as a source of leaked secrets and untrusted code.
 
 Out of scope: Google infrastructure itself (Sheets, OAuth server, account security of Google), hardening of Windows, physical security of the PC beyond a locked screen and disk encryption, and the Google Form with its Apps Script (the app only reads what they write to the sheet).
@@ -29,7 +29,7 @@ Assumptions: one PC, one Windows profile for the user, Windows updates and antiv
 
 ## System Overview
 
-ReportsWpf is a stand-alone Windows application. It imports form answers from a Google Sheet, stores them in SQLite, and builds a `.docx` report for a period. There is no server. Before S6 there is no login, so the Windows profile is the only protection of the data.
+ReportsWpf is a stand-alone Windows application. It imports form answers from a Google Sheet, stores them in SQLite, and builds a `.docx` report for a period. There is no server. Login and roles exist from S6. Before S6 the Windows profile was the only protection of the data.
 
 ```mermaid
 flowchart LR
@@ -62,9 +62,9 @@ flowchart LR
 | P2 | Process | Google integration (OAuth, read, publish) |
 | P3 | Process | Import and data services (episodes, reference data, repositories) |
 | P4 | Process | Report generation (aggregation, `.docx` renderer, journal) |
-| P5 | Process | Identity (login, password, roles), S6 |
-| P6 | Process | Audit (recording and viewing events), S6 |
-| D1 | Data Store | `reports.db` (missions, reference data, journal, later `Accounts` and `AuditEvents`) |
+| P5 | Process | Identity (login, password, roles), built in S6 |
+| P6 | Process | Audit (recording and viewing events), built in S6 |
+| D1 | Data Store | `reports.db` (missions, reference data, journal, `Accounts` and `AuditEvents`) |
 | D2 | Data Store | `settings.json` (unit data, `SpreadsheetId`, output folder) |
 | D3 | Data Store | `credentials.json` and `token-rw\` (OAuth client and token) |
 | D4 | Data Store | `template.docx` and generated reports in the output folder |
@@ -135,7 +135,7 @@ Marks: **S** - Spoofing; **T** - Tampering; **R** - Repudiation; **I** - Informa
 | **D3 credentials, token** *(Data Store)* | - | T-16 `credentials.json` replaced. | - | T-15 Files read by malware. | - | - |
 | **D4 template, reports** *(Data Store)* | - | T-16 Template edited, wrong text in reports. | - | T-17 Reports readable or synced to a shared folder. | T-18 Files deleted. | - |
 | **D5 error.log** *(Data Store)* | - | - | - | T-17 Log with secrets or personal data. | - | - |
-| **D6 Repository, packages** *(Data Store)* | - | T-20 Bad or vulnerable dependency. | - | T-19 Secrets or real data committed. | - | - |
+| **D6 Repository, packages** *(Data Store)* | - | T-20 Bad or vulnerable dependency, T-21 Release files replaced. | - | T-19 Secrets or real data committed. | - | - |
 
 ### Threat details
 
@@ -159,11 +159,13 @@ Marks: **S** - Spoofing; **T** - Tampering; **R** - Repudiation; **I** - Informa
 | T-16 | D2, D3, D4 / T | A1, A3 | `SpreadsheetId` is changed to a foreign sheet, `credentials.json` is replaced with another OAuth client, or the template is edited. The app imports fake data, publishes to a foreign sheet or prints wrong text. | Settings and template rebuild only for Administrator and audited, sheet title shown and confirmed before the first write and after an ID change, file rights | SEC-14 (new), SEC-04, SEC-09, SEC-12 | Medium |
 | T-17 | P1, P2, P4, P6, D4, D5 / I | A1, A3 | Error text, `error.log`, audit details or reports show secrets, stack traces or personal data, or reports lie in a shared or cloud synced folder. | Messages without stack traces, no secrets or content in logs and audit (whitelist), log rotation, default output folder in the profile | SEC-09, SEC-12, NFR-04 | Medium, the user can choose a shared output folder |
 | T-18 | D1, D2, D4 / D | A3 | Malware, a disk fault or a mistake deletes or damages the database, settings, template or reports, or another process locks the database. | EF Core migrations, atomic writes, defaults for a broken `settings.json`, missions can be imported again, template can be rebuilt | NFR-05, FR-15, FR-24 | Medium, no backup in 0.1.0, local statuses, journal and accounts are lost |
-| T-19 | D6 / I | A5 | `credentials.json`, a token, `reports.db` or real operator data is committed to Git and read by anyone with repository access. | `.gitignore`, secret scan in CI, fictional test data, a leaked secret is rotated and revoked | SEC-10 | Low, history keeps a secret until it is rotated |
-| T-20 | D6 / T | A5 | A vulnerable or malicious NuGet package, or a changed `Directory.Packages.props`, brings foreign code into the build. | Central package versions, review of every new package, `dotnet list package --vulnerable` in CI, final check before 1.0 | SEC-11 | Low |
+| T-19 | D6 / I | A5 | `credentials.json`, a token, `reports.db` or real operator data is committed to Git and read by anyone with repository access. | `.gitignore`, fictional test data, a leaked secret is rotated and revoked. The secret scan in CI is planned but not automated yet, because no CI workflow exists | SEC-10 | Low, history keeps a secret until it is rotated |
+| T-20 | D6 / T | A5 | A vulnerable or malicious NuGet package, or a changed `Directory.Packages.props`, brings foreign code into the build. | Central package versions, review of every new package, `dotnet list package --vulnerable` planned for CI but not automated yet, because no CI workflow exists; final check before 1.0 | SEC-11 | Low |
+| T-21 | P1, D2, D6 / T | A1, A5 | A distributed build, an assembly or a shipped config default is replaced or patched (trojanized copy, edited DLL) and the user runs it as the genuine app. A hash list alone does not help, because the attacker recomputes it. | ECDSA-signed release manifest verified at startup (`Reports.Integrity`): the client holds only the public key, the private key stays offline, SHA-256 per file is checked inside the signed manifest | SEC-16 (new), SEC-10 | Medium, a local check can be patched out by malware under the same user. Someone with write access to the install folder can delete the manifest and skip the check, because the check runs on the user's PC |
 
 ### Results
 
 - Decision on `reports.db` (T-14): the database is not encrypted in 0.1.0. The protection is owner-only rights (SEC-12) and the disk encryption assumed above. SQLCipher stays an option if a shared PC becomes a real use case. The risk is accepted as medium.
 - Gaps found, no existing SEC requirement covered them: audit and account tampering (T-13), foreign spreadsheet (T-16) and unlimited sheet size (T-09). They are now SEC-13, SEC-14 and SEC-15 in the SRS.
+- Added in Lab 5: tampering with distributed binaries and shipped config (T-21), covered by the new SEC-16 (signed release manifest).
 - Malware under the same Windows user (A3) cannot be stopped by the application. The listed measures only make theft and tampering harder and easier to notice.

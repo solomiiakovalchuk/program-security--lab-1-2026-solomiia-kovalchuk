@@ -13,7 +13,7 @@ Outline follows ISO/IEC/IEEE 29148:2018, adapted to the size of the project.
 
 ## 1 Introduction
 
-**Purpose.** This document describes what the stakeholders need from ReportsWpf, without technical decisions. The system is not built yet. The project follows specification first, code later (stages S0-S7 in the [roadmap](roadmap.md)). Each STK requirement is refined into FR, NFR and SEC requirements in the [SRS](software_requirements.md).
+**Purpose.** This document describes what the stakeholders need from ReportsWpf, without technical decisions. The system is built through S6 (see the roadmap). The project follows specification first, code later (stages S0-S7 in the [roadmap](roadmap.md)). Each STK requirement is refined into FR, NFR and SEC requirements in the [SRS](software_requirements.md).
 
 **Scope.** In scope:
 

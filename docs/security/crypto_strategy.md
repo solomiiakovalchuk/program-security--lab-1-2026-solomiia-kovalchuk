@@ -6,7 +6,7 @@
 | Version | 0.1.0 |
 | Status | Draft |
 | Classification | Internal |
-| Last update | 2026-10-17 |
+| Last update | 2026-10-22 |
 | Owner | Solomiia Kovalchuk |
 | Related documents | [security_policy.md](security_policy.md), [threat_model.md](threat_model.md), [architecture_description.md](../architecture/architecture_description.md), [Identity business_logic.md](../specification/modules/Identity/business_logic.md) |
 
@@ -67,4 +67,5 @@ Covered by `tests/Reports.Security.Tests`: round-trip of `AesGcmSecretProtector`
 
 - [Security policy](security_policy.md): SEC-05 and the "no own cryptography" principle this document implements.
 - [Threat model](threat_model.md): T-14, T-15 and the accepted risk on `reports.db`.
+- [Integrity and distribution](integrity_and_distribution.md): ECDSA-signed release manifest (authenticity of the distributed build), a separate concern from secrets at rest.
 - [Identity business_logic.md](../specification/modules/Identity/business_logic.md): the PBKDF2 password-hashing design, a separate concern from the secrets-at-rest protection described here.
