@@ -1,0 +1,44 @@
+[
+  {
+    "input": "2026_IPZs-24-1_Kovalchuk_Solomiia_variant:05_",
+    "v0": true,
+    "v1": true,
+    "v2": true,
+    "agree": true
+  },
+  {
+    "input": "",
+    "v0": false,
+    "v1": false,
+    "v2": false,
+    "agree": true
+  },
+  {
+    "input": "wrong",
+    "v0": false,
+    "v1": false,
+    "v2": false,
+    "agree": true
+  },
+  {
+    "input": "Secret123",
+    "v0": false,
+    "v1": false,
+    "v2": false,
+    "agree": true
+  },
+  {
+    "input": "2026_IPZs-24-1_Kovalchuk_Solomiia_variant:05_ ",
+    "v0": false,
+    "v1": false,
+    "v2": false,
+    "agree": true
+  },
+  {
+    "input": "2026_ipzS-24-1_kOVALCHUK_sOLOMIIA_VARIANT:05_",
+    "v0": false,
+    "v1": false,
+    "v2": false,
+    "agree": true
+  }
+]
